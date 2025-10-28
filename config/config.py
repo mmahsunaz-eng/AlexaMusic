@@ -41,7 +41,9 @@ BOT_ID = getenv("BOT_ID")
 
 HEROKU_APP_NAME = getenv("HEROKU_APP_NAME")
 
-UPSTREAM_REPO = getenv("UPSTREAM_REPO", "https://github.com/mmahsunaz-eng/AlexaMusic.git")
+UPSTREAM_REPO = getenv(
+    "UPSTREAM_REPO", "https://github.com/mmahsunaz-eng/AlexaMusic.git"
+)
 
 UPSTREAM_BRANCH = getenv("UPSTREAM_BRANCH", "master")
 
@@ -108,7 +110,8 @@ clean = {}
 autoclean = []
 
 START_IMG_URL = getenv(
-    "START_IMG_URL", "https://drive.google.com/uc?export=view&id=12ZdMSs9pkoPYw5NSUCsS9zD3U2taI82d"
+    "START_IMG_URL",
+    "https://drive.google.com/uc?export=view&id=12ZdMSs9pkoPYw5NSUCsS9zD3U2taI82d",
 )
 
 PING_IMG_URL = getenv(
