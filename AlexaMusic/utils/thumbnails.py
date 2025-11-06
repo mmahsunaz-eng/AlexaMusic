@@ -1,25 +1,19 @@
-# Copyright (C) 2025 by Alexa_Help @ Github, < https://github.com/TheTeamAlexa >
-# Subscribe On YT < Jankari Ki Duniya >. All rights reserved. © Alexa © Yukki.
+# Copyright (C) 2025 by Onlyforacha Project
+# Modified from Alexa_Help @ Github, <https://github.com/TheTeamAlexa>
+# All rights reserved. © Onlyforacha © Acha
 
 """
-TheTeamAlexa is a project of Telegram bots with variety of purposes.
-Copyright (c) 2021 ~ Present Team Alexa <https://github.com/TheTeamAlexa>
-
-This program is free software: you can redistribute it and can modify
-as you want or you can collabe if you have new ideas.
+Onlyforacha X Bot Thumbnail Generator
+Customized version with neon glow style and logo integration.
 """
-
 
 import os
 import re
 import textwrap
-
 import aiofiles
 import aiohttp
-
 from PIL import Image, ImageDraw, ImageEnhance, ImageFilter, ImageFont, ImageOps
 from youtubesearchpython.__future__ import VideosSearch
-
 from config import YOUTUBE_IMG_URL
 
 
@@ -31,6 +25,17 @@ def changeImageSize(maxWidth, maxHeight, image):
     return image.resize((newWidth, newHeight))
 
 
+def draw_glow_text(draw, text, position, font, glow_color, text_color, glow_radius=4):
+    # simple glow effect by drawing blurred layers behind text
+    x, y = position
+    for offset in range(glow_radius, 0, -1):
+        draw.text((x - offset, y), text, font=font, fill=glow_color)
+        draw.text((x + offset, y), text, font=font, fill=glow_color)
+        draw.text((x, y - offset), text, font=font, fill=glow_color)
+        draw.text((x, y + offset), text, font=font, fill=glow_color)
+    draw.text(position, text, font=font, fill=text_color)
+
+
 async def gen_thumb(videoid):
     if os.path.isfile(f"cache/{videoid}.png"):
         return f"cache/{videoid}.png"
@@ -39,105 +44,69 @@ async def gen_thumb(videoid):
     try:
         results = VideosSearch(url, limit=1)
         for result in (await results.next())["result"]:
-            try:
-                title = result["title"]
-                title = re.sub(r"\W+", " ", title)
-                title = title.title()
-            except Exception:
-                title = "Unsupported Title"
-            try:
-                duration = result["duration"]
-            except Exception:
-                duration = "Unknown Mins"
+            title = re.sub(r"\W+", " ", result.get("title", "Unknown Title")).title()
+            duration = result.get("duration", "Unknown Mins")
             thumbnail = result["thumbnails"][0]["url"].split("?")[0]
-            try:
-                views = result["viewCount"]["short"]
-            except Exception:
-                views = "Unknown Views"
-            try:
-                channel = result["channel"]["name"]
-            except Exception:
-                channel = "Unknown Channel"
+            views = result.get("viewCount", {}).get("short", "Unknown Views")
 
         async with aiohttp.ClientSession() as session:
             async with session.get(thumbnail) as resp:
                 if resp.status == 200:
-                    f = await aiofiles.open(f"cache/thumb{videoid}.png", mode="wb")
-                    await f.write(await resp.read())
-                    await f.close()
+                    async with aiofiles.open(f"cache/thumb{videoid}.png", mode="wb") as f:
+                        await f.write(await resp.read())
 
         youtube = Image.open(f"cache/thumb{videoid}.png")
         image1 = changeImageSize(1280, 720, youtube)
         image2 = image1.convert("RGBA")
-        background = image2.filter(filter=ImageFilter.GaussianBlur(15))
+
+        # blur background
+        background = image2.filter(ImageFilter.GaussianBlur(15))
         enhancer = ImageEnhance.Brightness(background)
         background = enhancer.enhance(0.6)
-        Xcenter = youtube.width / 2
-        Ycenter = youtube.height / 2
-        x1 = Xcenter - 250
-        y1 = Ycenter - 250
-        x2 = Xcenter + 250
-        y2 = Ycenter + 250
-        logo = youtube.crop((x1, y1, x2, y2))
-        logo.thumbnail((520, 520), Image.LANCZOS)
-        logo = ImageOps.expand(logo, border=15, fill="white")
-        background.paste(logo, (50, 100))
+
+        # crop and paste logo thumbnail
+        Xcenter, Ycenter = youtube.width / 2, youtube.height / 2
+        logo_crop = youtube.crop((Xcenter - 250, Ycenter - 250, Xcenter + 250, Ycenter + 250))
+        logo_crop.thumbnail((520, 520), Image.LANCZOS)
+        logo_crop = ImageOps.expand(logo_crop, border=15, fill="white")
+        background.paste(logo_crop, (50, 100))
+
         draw = ImageDraw.Draw(background)
-        font = ImageFont.truetype("assets/font2.ttf", 40)
-        font2 = ImageFont.truetype("assets/font2.ttf", 70)
-        arial = ImageFont.truetype("assets/font2.ttf", 30)
-        name_font = ImageFont.truetype("assets/font.ttf", 30)
-        para = textwrap.wrap(title, width=30)
-        j = 0
-        draw.text((5, 5), "Alexa MusicBot", fill="white", font=name_font)
-        draw.text(
-            (600, 150),
-            "NOW PLAYING",
-            fill="white",
-            stroke_width=3,
-            stroke_fill="black",
-            font=font2,
-        )
-        for line in para:
-            if j == 1:
-                j += 1
-                draw.text(
-                    (600, 340),
-                    f"{line}",
-                    fill="white",
-                    stroke_width=1,
-                    stroke_fill="black",
-                    font=font,
-                )
-            if j == 0:
-                j += 1
-                draw.text(
-                    (600, 280),
-                    f"{line}",
-                    fill="white",
-                    stroke_width=1,
-                    stroke_fill="black",
-                    font=font,
-                )
-        draw.text(
-            (600, 450),
-            f"Views : {views[:23]}",
-            (255, 255, 255),
-            font=arial,
-        )
-        draw.text(
-            (600, 500),
-            f"Duration : {duration[:23]} Mins",
-            (255, 255, 255),
-            font=arial,
-        )
-        draw.text((600, 550), "Owner : Jankari Ki Duniya", (255, 255, 255), font=arial)
-        try:
-            os.remove(f"cache/thumb{videoid}.png")
-        except Exception:
-            pass
+        font_small = ImageFont.truetype("assets/font2.ttf", 40)
+        font_big = ImageFont.truetype("assets/font2.ttf", 70)
+        font_info = ImageFont.truetype("assets/font2.ttf", 30)
+        name_font = ImageFont.truetype("assets/font.ttf", 35)
+
+        # glow colors
+        glow_color = (255, 0, 255)
+        text_color = (255, 255, 255)
+
+        # logo Onlyforacha
+        logo_path = "AlexaMusic/utils/file_00000000e5e462088641d9a6402214ca.png"
+        if os.path.exists(logo_path):
+            bot_logo = Image.open(logo_path).convert("RGBA")
+            bot_logo.thumbnail((250, 250), Image.LANCZOS)
+            background.paste(bot_logo, (1000, 30), bot_logo)
+
+        # header name
+        draw_glow_text(draw, "Onlyforacha X Bot", (30, 20), name_font, glow_color, text_color)
+
+        # now playing text
+        draw_glow_text(draw, "NOW PLAYING", (600, 150), font_big, glow_color, text_color)
+
+        # title text wrapping
+        for i, line in enumerate(textwrap.wrap(title, width=30)):
+            draw_glow_text(draw, line, (600, 280 + (i * 60)), font_small, glow_color, text_color)
+
+        # video details
+        draw.text((600, 450), f"Views : {views}", fill=text_color, font=font_info)
+        draw.text((600, 500), f"Duration : {duration}", fill=text_color, font=font_info)
+        draw.text((600, 550), "Owner : Acha", fill=text_color, font=font_info)
+
+        os.remove(f"cache/thumb{videoid}.png")
         background.save(f"cache/{videoid}.png")
         return f"cache/{videoid}.png"
+
     except Exception:
         return YOUTUBE_IMG_URL
 
@@ -150,104 +119,59 @@ async def gen_qthumb(videoid):
     try:
         results = VideosSearch(url, limit=1)
         for result in (await results.next())["result"]:
-            try:
-                title = result["title"]
-                title = re.sub(r"\W+", " ", title)
-                title = title.title()
-            except Exception:
-                title = "Unsupported Title"
-            try:
-                duration = result["duration"]
-            except Exception:
-                duration = "Unknown Mins"
+            title = re.sub(r"\W+", " ", result.get("title", "Unknown Title")).title()
+            duration = result.get("duration", "Unknown Mins")
             thumbnail = result["thumbnails"][0]["url"].split("?")[0]
-            try:
-                views = result["viewCount"]["short"]
-            except Exception:
-                views = "Unknown Views"
-            try:
-                channel = result["channel"]["name"]
-            except Exception:
-                channel = "Unknown Channel"
+            views = result.get("viewCount", {}).get("short", "Unknown Views")
 
         async with aiohttp.ClientSession() as session:
             async with session.get(thumbnail) as resp:
                 if resp.status == 200:
-                    f = await aiofiles.open(f"cache/thumb{videoid}.png", mode="wb")
-                    await f.write(await resp.read())
-                    await f.close()
+                    async with aiofiles.open(f"cache/thumb{videoid}.png", mode="wb") as f:
+                        await f.write(await resp.read())
 
         youtube = Image.open(f"cache/thumb{videoid}.png")
         image1 = changeImageSize(1280, 720, youtube)
         image2 = image1.convert("RGBA")
-        background = image2.filter(filter=ImageFilter.GaussianBlur(15))
+
+        background = image2.filter(ImageFilter.GaussianBlur(15))
         enhancer = ImageEnhance.Brightness(background)
         background = enhancer.enhance(0.6)
-        Xcenter = youtube.width / 2
-        Ycenter = youtube.height / 2
-        x1 = Xcenter - 250
-        y1 = Ycenter - 250
-        x2 = Xcenter + 250
-        y2 = Ycenter + 250
-        logo = youtube.crop((x1, y1, x2, y2))
-        logo.thumbnail((520, 520), Image.LANCZOS)
-        logo = ImageOps.expand(logo, border=15, fill="white")
-        background.paste(logo, (50, 100))
+
+        Xcenter, Ycenter = youtube.width / 2, youtube.height / 2
+        logo_crop = youtube.crop((Xcenter - 250, Ycenter - 250, Xcenter + 250, Ycenter + 250))
+        logo_crop.thumbnail((520, 520), Image.LANCZOS)
+        logo_crop = ImageOps.expand(logo_crop, border=15, fill="white")
+        background.paste(logo_crop, (50, 100))
+
         draw = ImageDraw.Draw(background)
-        font = ImageFont.truetype("assets/font2.ttf", 40)
-        font2 = ImageFont.truetype("assets/font2.ttf", 70)
-        arial = ImageFont.truetype("assets/font2.ttf", 30)
-        name_font = ImageFont.truetype("assets/font.ttf", 30)
-        para = textwrap.wrap(title, width=30)
-        j = 0
-        draw.text((5, 5), "Alexa MusicBot", fill="white", font=name_font)
-        draw.text(
-            (600, 150),
-            "ADDED THIS SONG IN QUEUE",
-            fill="white",
-            stroke_width=3,
-            stroke_fill="black",
-            font=font2,
-        )
-        for line in para:
-            if j == 1:
-                j += 1
-                draw.text(
-                    (600, 340),
-                    f"{line}",
-                    fill="white",
-                    stroke_width=1,
-                    stroke_fill="black",
-                    font=font,
-                )
-            if j == 0:
-                j += 1
-                draw.text(
-                    (600, 280),
-                    f"{line}",
-                    fill="white",
-                    stroke_width=1,
-                    stroke_fill="black",
-                    font=font,
-                )
-        draw.text(
-            (600, 450),
-            f"Views : {views[:23]}",
-            (255, 255, 255),
-            font=arial,
-        )
-        draw.text(
-            (600, 500),
-            f"Duration : {duration[:23]} Mins",
-            (255, 255, 255),
-            font=arial,
-        )
-        draw.text((600, 550), "Owner : Jankari Ki Duniya", (255, 255, 255), font=arial)
-        try:
-            os.remove(f"cache/thumb{videoid}.png")
-        except Exception:
-            pass
+        font_small = ImageFont.truetype("assets/font2.ttf", 40)
+        font_big = ImageFont.truetype("assets/font2.ttf", 65)
+        font_info = ImageFont.truetype("assets/font2.ttf", 30)
+        name_font = ImageFont.truetype("assets/font.ttf", 35)
+
+        glow_color = (255, 0, 255)
+        text_color = (255, 255, 255)
+
+        logo_path = "AlexaMusic/utils/file_00000000e5e462088641d9a6402214ca.png"
+        if os.path.exists(logo_path):
+            bot_logo = Image.open(logo_path).convert("RGBA")
+            bot_logo.thumbnail((250, 250), Image.LANCZOS)
+            background.paste(bot_logo, (1000, 30), bot_logo)
+
+        draw_glow_text(draw, "Onlyforacha X Bot", (30, 20), name_font, glow_color, text_color)
+        draw_glow_text(draw, "ADDED TO QUEUE", (600, 150), font_big, glow_color, text_color)
+
+        for i, line in enumerate(textwrap.wrap(title, width=30)):
+            draw_glow_text(draw, line, (600, 280 + (i * 60)), font_small, glow_color, text_color)
+
+        draw.text((600, 450), f"Views : {views}", fill=text_color, font=font_info)
+        draw.text((600, 500), f"Duration : {duration}", fill=text_color, font=font_info)
+        draw.text((600, 550), "Owner : Acha", fill=text_color, font=font_info)
+
+        os.remove(f"cache/thumb{videoid}.png")
         background.save(f"cache/{videoid}.png")
         return f"cache/{videoid}.png"
+
     except Exception:
         return YOUTUBE_IMG_URL
