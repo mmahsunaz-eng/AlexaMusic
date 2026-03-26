@@ -52,7 +52,9 @@ async def gen_thumb(videoid):
         async with aiohttp.ClientSession() as session:
             async with session.get(thumbnail) as resp:
                 if resp.status == 200:
-                    async with aiofiles.open(f"cache/thumb{videoid}.png", mode="wb") as f:
+                    async with aiofiles.open(
+                        f"cache/thumb{videoid}.png", mode="wb"
+                    ) as f:
                         await f.write(await resp.read())
 
         youtube = Image.open(f"cache/thumb{videoid}.png")
@@ -66,7 +68,9 @@ async def gen_thumb(videoid):
 
         # crop and paste logo thumbnail
         Xcenter, Ycenter = youtube.width / 2, youtube.height / 2
-        logo_crop = youtube.crop((Xcenter - 250, Ycenter - 250, Xcenter + 250, Ycenter + 250))
+        logo_crop = youtube.crop(
+            (Xcenter - 250, Ycenter - 250, Xcenter + 250, Ycenter + 250)
+        )
         logo_crop.thumbnail((520, 520), Image.LANCZOS)
         logo_crop = ImageOps.expand(logo_crop, border=15, fill="white")
         background.paste(logo_crop, (50, 100))
@@ -89,14 +93,20 @@ async def gen_thumb(videoid):
             background.paste(bot_logo, (1000, 30), bot_logo)
 
         # header name
-        draw_glow_text(draw, "Onlyforacha X Bot", (30, 20), name_font, glow_color, text_color)
+        draw_glow_text(
+            draw, "Onlyforacha X Bot", (30, 20), name_font, glow_color, text_color
+        )
 
         # now playing text
-        draw_glow_text(draw, "NOW PLAYING", (600, 150), font_big, glow_color, text_color)
+        draw_glow_text(
+            draw, "NOW PLAYING", (600, 150), font_big, glow_color, text_color
+        )
 
         # title text wrapping
         for i, line in enumerate(textwrap.wrap(title, width=30)):
-            draw_glow_text(draw, line, (600, 280 + (i * 60)), font_small, glow_color, text_color)
+            draw_glow_text(
+                draw, line, (600, 280 + (i * 60)), font_small, glow_color, text_color
+            )
 
         # video details
         draw.text((600, 450), f"Views : {views}", fill=text_color, font=font_info)
@@ -127,7 +137,9 @@ async def gen_qthumb(videoid):
         async with aiohttp.ClientSession() as session:
             async with session.get(thumbnail) as resp:
                 if resp.status == 200:
-                    async with aiofiles.open(f"cache/thumb{videoid}.png", mode="wb") as f:
+                    async with aiofiles.open(
+                        f"cache/thumb{videoid}.png", mode="wb"
+                    ) as f:
                         await f.write(await resp.read())
 
         youtube = Image.open(f"cache/thumb{videoid}.png")
@@ -139,7 +151,9 @@ async def gen_qthumb(videoid):
         background = enhancer.enhance(0.6)
 
         Xcenter, Ycenter = youtube.width / 2, youtube.height / 2
-        logo_crop = youtube.crop((Xcenter - 250, Ycenter - 250, Xcenter + 250, Ycenter + 250))
+        logo_crop = youtube.crop(
+            (Xcenter - 250, Ycenter - 250, Xcenter + 250, Ycenter + 250)
+        )
         logo_crop.thumbnail((520, 520), Image.LANCZOS)
         logo_crop = ImageOps.expand(logo_crop, border=15, fill="white")
         background.paste(logo_crop, (50, 100))
@@ -159,11 +173,17 @@ async def gen_qthumb(videoid):
             bot_logo.thumbnail((250, 250), Image.LANCZOS)
             background.paste(bot_logo, (1000, 30), bot_logo)
 
-        draw_glow_text(draw, "Onlyforacha X Bot", (30, 20), name_font, glow_color, text_color)
-        draw_glow_text(draw, "ADDED TO QUEUE", (600, 150), font_big, glow_color, text_color)
+        draw_glow_text(
+            draw, "Onlyforacha X Bot", (30, 20), name_font, glow_color, text_color
+        )
+        draw_glow_text(
+            draw, "ADDED TO QUEUE", (600, 150), font_big, glow_color, text_color
+        )
 
         for i, line in enumerate(textwrap.wrap(title, width=30)):
-            draw_glow_text(draw, line, (600, 280 + (i * 60)), font_small, glow_color, text_color)
+            draw_glow_text(
+                draw, line, (600, 280 + (i * 60)), font_small, glow_color, text_color
+            )
 
         draw.text((600, 450), f"Views : {views}", fill=text_color, font=font_info)
         draw.text((600, 500), f"Duration : {duration}", fill=text_color, font=font_info)
