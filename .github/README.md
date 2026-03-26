@@ -6,7 +6,7 @@
 <br>
 <p align="center">
     <a href="https://t.me/Alexa_BotUpdates">
-        <img src="cover.png" width="650" alt="Cover Image">
+      <img src="https://telegra.ph/file/f6064bc90cc76e59015b2.jpg" width="650">
     </a>
 </p>
 <br>
@@ -24,6 +24,8 @@
 ># <h2 align="center"><b>🚀 Fix for YouTube ip blocking & Sign-in errors </b></h2>
 >
 >## [Guide for using cookies](https://github.com/TheTeamAlexa/AlexaMusic/blob/master/cookies/README.md)
+>
+>## [Must Install Deno](https://github.com/TheTeamAlexa/AlexaMusic/blob/master/.github/deno.md)
 >
 >### 🔹 Need Help ? Join our Support Group for Assistance!!
 
